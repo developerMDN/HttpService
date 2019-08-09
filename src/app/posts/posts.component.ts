@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { PostsService } from '../services/posts.service';
+import { PostServiceService } from '../service/post-service.service';
 
 @Component({
   selector: 'app-posts',
@@ -10,33 +9,51 @@ import { PostsService } from '../services/posts.service';
 export class PostsComponent implements OnInit {
 
   posts: any;
-  url: string;
-  httpHeaders: HttpHeaders;
 
-  constructor(private http: HttpClient, private service: PostsService) {
-    this.url = 'api/post';
-
-    this.httpHeaders = new HttpHeaders({
-      'Content-type': 'application/json; charset=UTF-8'
-    });
-
+  constructor(private service: PostServiceService) {
   }
 
   ngOnInit() {
-    this.http.get(this.url)
-      .subscribe(response => {
-        this.posts = response;
-        console.log(this.posts);
-      }, (error) => console.log(error), () => console.log('¡Ready!'));
+
+    this.service.getPosts()
+      .subscribe(response => this.posts = response);
 
   }
 
-  createPost(title: HTMLInputElement) {
+  createPost(input: HTMLInputElement) {
 
-    const post = { title: title.value };
-    const options = { headers: this.httpHeaders };
+    const post = { Title: input.value, id: 0 };
+    input.value = '';
 
-    this.http.post(this.url, post, options).subscribe( response => console.log(response));
+    this.service.createPost(input.value)
+      .subscribe(response => {
+        post.id = response as number;
+        this.posts.splice(0, 0, post);
+      });
+
+  }
+
+  updatePost(post: any, input: HTMLInputElement) {
+
+    post.Title = input.value;
+
+    input.value = '';
+
+    this.service.updatePost(post)
+      .subscribe(() => {
+        const index = this.posts.indexOf(post);
+        this.posts.splice(1, index, post);
+      });
+
+  }
+
+  deletePost(post: any) {
+
+    this.service.deletePost(post.Id)
+      .subscribe(() => {
+        const index = this.posts.indexOf(post);
+        this.posts.splice(1, index);
+      });
 
   }
 
