@@ -1,6 +1,7 @@
+// import { catchError } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AppError } from '../common/app-error';
 
@@ -44,18 +45,20 @@ export class PostServiceService {
 
   }
 
-  deletePost(id: numeric) {
+  deletePost(id: number) {
 
     const options = { headers: this.httpHeaders };
 
     return this.http.delete(`${this.url}/${id}`, options)
-    .catch((error: Response)=> {
-      if (error.status === 400) {
-         return Observable.throw(new AppError());
-      } else {
-        return Observable.throw(new AppError(error));
-      }
-    });
+      .pipe(catchError((error: Response) => {
+        if (error.status === 404) {
+          return throwError(new NotFoundError());
+        }
+        return throwError(new AppError(error));
+      }));
+
+
+
   }
 
 }
