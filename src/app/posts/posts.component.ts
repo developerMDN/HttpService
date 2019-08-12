@@ -1,3 +1,6 @@
+import { BadInput } from './../common/bad-input';
+import { NotFoundError } from './../common/not-found-error';
+import { AppError } from './../common/app-error';
 import { Component, OnInit } from '@angular/core';
 import { PostServiceService } from '../service/post-service.service';
 
@@ -15,7 +18,7 @@ export class PostsComponent implements OnInit {
 
   ngOnInit() {
 
-    this.service.getPosts()
+    this.service.get()
       .subscribe(response => this.posts = response);
 
   }
@@ -23,12 +26,22 @@ export class PostsComponent implements OnInit {
   createPost(input: HTMLInputElement) {
 
     const post = { Title: input.value, id: 0 };
-    input.value = '';
+    this.posts.splice(0, 0, post);
 
-    this.service.createPost(input.value)
-      .subscribe(response => {
-        post.id = response as number;
-        this.posts.splice(0, 0, post);
+    this.service.create(post)
+      .subscribe({
+        next: null,
+        error: (error: AppError) => {
+
+          this.posts.splice(0, 1);
+
+          if (error instanceof BadInput) {
+            console.log('BADINPUT.');
+          } else {
+            throw error;
+          }
+        },
+        complete: () => input.value = ''
       });
 
   }
@@ -39,7 +52,7 @@ export class PostsComponent implements OnInit {
 
     input.value = '';
 
-    this.service.updatePost(post)
+    this.service.update(post)
       .subscribe(() => {
         const index = this.posts.indexOf(post);
         this.posts.splice(1, index, post);
@@ -49,11 +62,22 @@ export class PostsComponent implements OnInit {
 
   deletePost(post: any) {
 
-    this.service.deletePost(post.Id)
-      .subscribe(() => {
-        const index = this.posts.indexOf(post);
-        this.posts.splice(1, index);
-      });
+    const index = this.posts.indexOf(post);
+    this.posts.splice(1, index);
+
+    this.service.delete(post.Id)
+      .subscribe(
+        () => null,
+        (error: AppError) => {
+          this.posts.splice(1, index, post);
+          if (error instanceof NotFoundError) {
+            console.log('Este post no existe.');
+          } else {
+            throw error;
+          }
+        },
+        () => console.log('')
+      );
 
   }
 

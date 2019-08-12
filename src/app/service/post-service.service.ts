@@ -1,64 +1,14 @@
-// import { catchError } from 'rxjs/operators';
+import { DataService } from './data-service';
 import { Injectable } from '@angular/core';
-import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { AppError } from '../common/app-error';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PostServiceService {
+export class PostServiceService extends DataService {
 
-  posts: any;
-  url: string;
-  httpHeaders: HttpHeaders;
-
-  constructor(private http: HttpClient) {
-    this.url = 'api/post';
-
-    this.httpHeaders = new HttpHeaders({
-      'Content-type': 'application/json; charset=UTF-8'
-    });
+  constructor(http: HttpClient) {
+    super('api/post', http);
 
   }
-
-  getPosts() {
-
-    return this.http.get(this.url);
-  }
-
-  createPost(title: string) {
-
-    const post = { Title: title, id: 0 };
-    const options = { headers: this.httpHeaders };
-
-    return this.http.post(this.url, post, options);
-
-  }
-
-  updatePost(post: any) {
-
-    const options = { headers: this.httpHeaders };
-
-    return this.http.put(this.url, post, options);
-
-  }
-
-  deletePost(id: number) {
-
-    const options = { headers: this.httpHeaders };
-
-    return this.http.delete(`${this.url}/${id}`, options)
-      .pipe(catchError((error: Response) => {
-        if (error.status === 404) {
-          return throwError(new NotFoundError());
-        }
-        return throwError(new AppError(error));
-      }));
-
-
-
-  }
-
 }

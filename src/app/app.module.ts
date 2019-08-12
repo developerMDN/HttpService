@@ -1,9 +1,10 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, ErrorHandler } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
 import { PostsComponent } from './posts/posts.component';
+import { AppErrorHandler} from '../app/common/app-error-handler';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,9 @@ import { PostsComponent } from './posts/posts.component';
     BrowserModule,
     HttpClientModule
   ],
-  providers: [],
+  providers: [
+    {provide: ErrorHandler, useClass: AppErrorHandler}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
